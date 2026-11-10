@@ -1,4 +1,4 @@
-# pinned up. — the crit nobody asked for
+# pinned up
 
 An AI late-night podcast where two sarcastic voice hosts live-crit any building you type in.
 
