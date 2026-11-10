@@ -3,6 +3,8 @@
 
 An AI late-night podcast where two sarcastic voice hosts live-crit any building you type in.
 
+![Pinned Up live crit of the London Eye: building photo on stage, Margaux's caption, Jev meters and buzzword bingo](docs/screenshot.jpg)
+
 Type a building ("The Vessel", "London Eye", "Forbidden City"), hit **Pin it up**, and:
 
 - **Exa** finds the real project page and press text, and the building's photo fills the stage
