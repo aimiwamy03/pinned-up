@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Pinned Up — The Crit Nobody Asked For</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap">
+<style>
+  :root { --ink:#111; --paper:#f3efe6; --red:#d6332a; --tape:#e9dc9a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink);
+         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; height:100vh; display:grid;
+         grid-template-rows:auto 1fr auto; }
+  header { display:flex; justify-content:space-between; align-items:baseline; padding:18px 28px; border-bottom:3px solid var(--ink); }
+  h1 { margin:0; font-size:40px; letter-spacing:-1.5px; text-transform:lowercase; }
+  h1 span { color:var(--red); }
+  .live { font-weight:700; color:var(--red); }
+  main { display:grid; grid-template-columns: 1.1fr 1fr; gap:24px; padding:24px 28px; overflow:hidden; }
+  .wall { background:#fff; border:1px solid #ccc; padding:20px; position:relative; transform:rotate(-0.6deg);
+          box-shadow: 0 8px 24px rgba(0,0,0,.08); overflow-y:auto; min-height:0; }
+  .wall::before, .wall::after { content:""; position:absolute; top:-8px; width:90px; height:24px; background:var(--tape); opacity:.85; }
+  .wall::before { left:20px; transform:rotate(-6deg);} .wall::after { right:20px; transform:rotate(5deg);}
+  .wall img { width:100%; max-height:34vh; object-fit:cover; filter:grayscale(.2); }
+  .wall h2 { font-size:22px; margin:12px 0 6px; }
+  .quote { font-family: Georgia, serif; font-style:italic; font-size:17px; line-height:1.4; border-left:4px solid var(--red); padding-left:12px; }
+  .transcript { overflow-y:auto; min-height:0; display:flex; flex-direction:column; gap:10px; padding-right:6px; }
+  .line { padding:10px 14px; border-radius:2px; max-width:92%; font-size:17px; line-height:1.35; }
+  .Margaux { background:#111; color:#f3efe6; align-self:flex-start; }
+  .Theo { background:#fff; border:2px solid #111; align-self:flex-end; }
+  .who { font-size:11px; letter-spacing:2px; text-transform:uppercase; opacity:.7; margin-bottom:3px; }
+  footer { display:grid; grid-template-columns: repeat(3, 1fr) 2fr; gap:20px; padding:14px 28px 20px; border-top:3px solid var(--ink); align-items:end; }
+  .meter label { font-size:12px; letter-spacing:2px; text-transform:uppercase; }
+  .bar { height:16px; background:#ddd; margin-top:6px; } .fill { height:100%; background:var(--ink); transition:width .4s; }
+  .val { font-size:28px; font-weight:800; }
+  .bingo { display:flex; flex-wrap:wrap; gap:6px; }
+  .bingo span { font-size:12px; padding:4px 8px; border:1px solid #111; text-transform:lowercase; }
+  .bingo span.hit { background:var(--red); color:#fff; border-color:var(--red); text-decoration:line-through; }
+  .caret { display:inline-block; margin-left:2px; animation: blink 1s steps(2) infinite; opacity:.6; }
+  @keyframes blink { 50% { opacity:0; } }
+  .pin { display:flex; gap:8px; align-items:center; }
+  .pin input { font:inherit; font-size:16px; padding:8px 12px; border:2px solid var(--ink); background:#fff; width:300px; }
+  .pin button { font:inherit; font-weight:700; padding:9px 14px; border:2px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer; }
+  .pin button#stop { background:#fff; color:var(--ink); }
+  .pin button:disabled { opacity:.4; cursor:default; }
+  .verdict { position:fixed; inset:0; display:none; place-items:center; background:rgba(243,239,230,.92); }
+  .verdict div { font-size:90px; font-weight:900; letter-spacing:-3px; color:var(--red); transform:rotate(-4deg); border:10px solid var(--red); padding:10px 40px; }
+
+  /* ---- full-bleed stage: building photo fills the page, transcript overlaid like subtitles ---- */
+  main { display:block !important; position:relative; padding:0 !important; overflow:hidden;
+         background:#1b1b1b center/cover no-repeat; transition: background-image .4s; }
+  main::before { content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+         background:linear-gradient(to bottom, rgba(0,0,0,.25) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,.15) 55%, rgba(0,0,0,.65) 100%); }
+  .wall { position:absolute; top:22px; left:26px; width:min(440px, 38%); max-height:42%; z-index:2;
+          background:rgba(255,255,255,.93); transform:rotate(-1.2deg); padding:16px 18px; }
+  .wall img { display:none; }
+  .wall h2 { font-size:18px; margin:0 0 8px; }
+  .wall .quote { font-size:15px; }
+  .transcript { position:absolute; left:50%; transform:translateX(-50%); bottom:26px; z-index:3;
+                width:min(1100px, 92%); max-height:56%; padding-right:0; }
+  .transcript .line { font-size:24px; line-height:1.35; max-width:88%; backdrop-filter: blur(6px);
+                      box-shadow:0 8px 28px rgba(0,0,0,.3); }
+  .transcript .Margaux { background:rgba(17,17,17,.84); }
+  .transcript .Theo { background:rgba(255,255,255,.9); }
+  .transcript .line:not(:nth-last-child(-n+2)) { opacity:.5; }
+
+  /* ================= LATE-NIGHT SHOW THEME ================= */
+  :root { --night:#07070d; --ink2:#14141f; --neon:#ff3d7f; --amber:#ffb547; --cyan:#4fd8ff; --paper:#f4efe6; }
+  body { background:var(--night); color:var(--paper); font-family:Inter, "Helvetica Neue", Arial, sans-serif; }
+  header { border-bottom:1px solid #2a2a3a; background:linear-gradient(#0e0e18,#07070d); padding:14px 28px; align-items:center; }
+  h1 { font-family:"Bebas Neue", Inter, sans-serif; font-size:46px; letter-spacing:2px; text-transform:uppercase; color:#fff;
+       text-shadow:0 0 6px var(--neon), 0 0 18px var(--neon), 0 0 40px rgba(255,61,127,.6); }
+  h1 span { color:var(--amber); text-shadow:0 0 8px var(--amber), 0 0 22px var(--amber); }
+  h1 small { font-family:Inter, sans-serif; font-size:12px !important; letter-spacing:3px !important; text-transform:uppercase;
+             color:#9a9ab0; text-shadow:none; margin-left:10px; }
+  .onair { font-family:"Bebas Neue", sans-serif; font-size:22px; letter-spacing:3px; padding:4px 12px; border:2px solid #5a1a24;
+           color:#5a1a24; border-radius:4px; margin-right:6px; transition:all .3s; }
+  body.live .onair { color:#fff; border-color:#ff2d4a; background:#ff2d4a; box-shadow:0 0 12px #ff2d4a, 0 0 32px rgba(255,45,74,.7); animation:pulse 1.6s infinite; }
+  @keyframes pulse { 50% { box-shadow:0 0 6px #ff2d4a, 0 0 14px rgba(255,45,74,.4); } }
+  .pin input { background:#12121c; color:#fff; border:1px solid #33334a; border-radius:6px; width:280px; }
+  .pin input::placeholder { color:#6d6d85; }
+  .pin button { border-radius:6px; border:1px solid #33334a; background:#1b1b29; color:#fff; font-size:14px; }
+  .pin button#go { background:var(--neon); border-color:var(--neon); box-shadow:0 0 14px rgba(255,61,127,.5); }
+  .pin button#stop, .pin button#reset { background:#1b1b29; color:#cfcfe0; }
+  #status { font-size:12px; letter-spacing:2px; color:#9a9ab0; min-width:120px; }
+  body.live #status { color:#ff6b7f; }
+
+  main { background-color:#0b0b14; }
+  main::before { background:
+      radial-gradient(ellipse at 50% 0%, rgba(255,181,71,.18), transparent 55%),
+      radial-gradient(ellipse at 50% 120%, rgba(0,0,0,.85), transparent 60%),
+      linear-gradient(to bottom, rgba(7,7,13,.55) 0%, rgba(7,7,13,.05) 30%, rgba(7,7,13,.15) 60%, rgba(7,7,13,.92) 100%) !important; }
+  main::after { content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+      background: linear-gradient(to right, rgba(110,8,24,.85), rgba(110,8,24,0) 7%, rgba(110,8,24,0) 93%, rgba(110,8,24,.85)),
+                  repeating-linear-gradient(to right, rgba(0,0,0,.18) 0 6px, rgba(0,0,0,0) 6px 18px);
+      -webkit-mask: linear-gradient(to right, #000 0 7%, transparent 7% 93%, #000 93%); mask: linear-gradient(to right, #000 0 7%, transparent 7% 93%, #000 93%); }
+
+  .wall { background:rgba(14,14,24,.82) !important; color:var(--paper); border:1px solid rgba(255,181,71,.35); border-radius:10px;
+          transform:none !important; top:22px !important; left:9% !important; width:min(380px, 34%) !important; max-height:38% !important;
+          box-shadow:0 10px 40px rgba(0,0,0,.5); backdrop-filter:blur(8px); padding:14px 16px 12px !important; }
+  .wall::before { content:"TONIGHT ON THE WALL"; position:static; display:block; width:auto; height:auto; background:none; opacity:1; transform:none;
+                  font-family:"Bebas Neue", sans-serif; letter-spacing:3px; font-size:15px; color:var(--amber); margin-bottom:4px;
+                  text-shadow:0 0 8px rgba(255,181,71,.6); }
+  .wall::after { display:none; }
+  .wall h2 { font-size:16px !important; line-height:1.25; color:#fff; }
+  .wall .quote { font-size:13px !important; color:#d8d3c8; border-left-color:var(--neon); }
+
+  .transcript { bottom:20px !important; width:min(760px, 70%) !important; max-height:36% !important; gap:8px !important; }
+  .transcript .line { font-size:17px !important; line-height:1.4; max-width:100% !important; border-radius:8px; padding:8px 14px 10px !important;
+                      background:rgba(7,7,13,.78) !important; color:#fff !important; border:none !important;
+                      box-shadow:0 6px 22px rgba(0,0,0,.45); align-self:center !important; width:100%; }
+  .transcript .line:not(:nth-last-child(-n+2)) { display:none; }
+  .transcript .line:nth-last-child(2) { opacity:.55; font-size:15px !important; }
+  .transcript .who { display:inline-block; font-family:"Bebas Neue", sans-serif; font-size:14px; letter-spacing:2px; opacity:1;
+                     padding:1px 8px; border-radius:3px; margin-bottom:4px; color:#07070d; }
+  .transcript .Margaux .who { background:var(--neon); box-shadow:0 0 10px rgba(255,61,127,.6); }
+  .transcript .Theo .who { background:var(--cyan); box-shadow:0 0 10px rgba(79,216,255,.6); }
+  .transcript .Margaux { border-left:3px solid var(--neon) !important; }
+  .transcript .Theo { border-left:3px solid var(--cyan) !important; }
+
+  footer { background:linear-gradient(#0c0c16,#07070d); border-top:1px solid #2a2a3a; color:#cfcfe0; padding:12px 28px 16px; }
+  .meter label, footer label { color:#8c8ca6 !important; font-size:11px !important; }
+  .val { font-family:"Bebas Neue", sans-serif; font-size:40px !important; font-weight:400 !important; color:var(--amber);
+         text-shadow:0 0 10px rgba(255,181,71,.55); letter-spacing:1px; }
+  #hv { color:var(--cyan); text-shadow:0 0 10px rgba(79,216,255,.55); }
+  .bar { background:#1d1d2c; height:8px; border-radius:4px; overflow:hidden; }
+  .fill { background:linear-gradient(90deg, var(--amber), var(--neon)); }
+  .bingo span { border-color:#33334a; color:#9a9ab0; border-radius:4px; }
+  .bingo span.hit { background:var(--neon); border-color:var(--neon); color:#fff; box-shadow:0 0 10px rgba(255,61,127,.6); }
+  .verdict { background:rgba(7,7,13,.75) !important; }
+  .verdict div { font-family:"Bebas Neue", sans-serif; letter-spacing:4px; color:#ff2d4a !important; border-color:#ff2d4a !important;
+                 text-shadow:0 0 18px rgba(255,45,74,.8); box-shadow:0 0 30px rgba(255,45,74,.5), inset 0 0 30px rgba(255,45,74,.3); }
+  #status { display:none !important; }
+  body.err #status { display:inline !important; color:#ff6b7f !important; }
+  .transcript .who { margin-right:10px; vertical-align:2px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>pinned up<span>.</span> <small>the crit nobody asked for · live</small></h1>
+  <form id="pin" class="pin">
+    <input id="building" placeholder="Type a building… e.g. The Vessel" autocomplete="off" />
+    <button id="go" type="submit">Pin it up</button>
+    <button id="stop" type="button" title="End the crit">■</button>
+    <button id="reset" type="button" title="Clear everything">Reset</button>
+    <span class="onair">ON AIR</span>
+    <span id="status">READY</span>
+  </form>
+</header>
+<main>
+  <section class="wall" id="wall"><h2>Waiting for a building…</h2><p>Call in and name one.</p></section>
+  <section class="transcript" id="transcript"></section>
+</main>
+<footer>
+  <div class="meter"><label>Pretension</label><div class="val" id="pv">0.00</div><div class="bar"><div class="fill" id="pf" style="width:0"></div></div></div>
+  <div class="meter"><label>Fair point (secretly)</label><div class="val" id="fv">0.00</div><div class="bar"><div class="fill" id="ff" style="width:0"></div></div></div>
+  <div class="meter"><label>Theo landed hits</label><div class="val" id="hv">0</div></div>
+  <div><label style="font-size:12px;letter-spacing:2px;text-transform:uppercase">Buzzword bingo</label><div class="bingo" id="bingo"></div></div>
+</footer>
+<div class="verdict" id="verdict"><div id="vtext"></div></div>
+<audio id="horn" src="https://actions.google.com/sounds/v1/alarms/air_horn.ogg" preload="auto"></audio>
+<script>
+const WORDS = ["liminal","porosity","parametric","contextual","honest materials","threshold","dialogue","interrogate","membrane","vernacular","tectonic","phenomenological"];
+let seenLines = 0, seenBingo = 0, shownVerdict = null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+async function tick() {
+  try {
+    const s = await (await fetch("/state")).json();
+    if (s.project) {
+      const html = `<h2>${esc(s.project.title)}</h2><p class="quote">“${esc(s.project.pressQuote)}”</p>`;
+      const wall = document.getElementById("wall");
+      if (wall.innerHTML !== html) wall.innerHTML = html;
+      const stage = document.querySelector("main");
+      const bg = s.project.image ? `url("${s.project.image.replace(/"/g, "%22")}")` : "";
+      if (stage.dataset.bg !== bg) { stage.style.backgroundImage = bg; stage.dataset.bg = bg; }
+    }
+    // Transcript bubbles are now streamed live by the show controller (below).
+    const m = s.meters;
+    document.getElementById("pv").textContent = m.pretension.toFixed(2);
+    document.getElementById("pf").style.width = (m.pretension*100)+"%";
+    document.getElementById("fv").textContent = m.fairPoint.toFixed(2);
+    document.getElementById("ff").style.width = (m.fairPoint*100)+"%";
+    document.getElementById("hv").textContent = m.theoHits;
+    const hits = Object.keys(s.bingo).length;
+    document.getElementById("bingo").innerHTML = WORDS.map(w => `<span class="${s.bingo[w]?'hit':''}">${w}</span>`).join("");
+    if (hits > seenBingo && hits % 4 === 0) document.getElementById("horn").play().catch(()=>{});
+    seenBingo = hits;
+    if (s.verdict && s.verdict !== shownVerdict) {
+      shownVerdict = s.verdict;
+      document.getElementById("vtext").textContent = s.verdict;
+      const v = document.getElementById("verdict"); v.style.display = "grid";
+      setTimeout(() => v.style.display = "none", 5000);
+    }
+  } catch (e) {}
+}
+setInterval(tick, 700); tick();
+</script>
+<script type="module">
+// ---------- Show controller: typed building -> Vapi squad call, mic muted, hosts run themselves ----------
+import Vapi from "https://esm.sh/@vapi-ai/web@2";
+
+const $ = (id) => document.getElementById(id);
+const setStatus = (t) => { $("status").textContent = t.replace(/^●\s*/, ""); document.body.classList.toggle("live", /LIVE|CONNECTING/.test(t)); document.body.classList.toggle("err", /ERROR|Missing|Error|failed/i.test(t)); };
+const MAX_TURNS = 6;           // host turns before the verdict
+const QUIET_MS = 1200;   // silence after a host finishes before we cue the handoff         // silence after a host finishes before we cue the next turn
+const STALL_MS = 12000;        // if nothing happens for this long, cue anyway
+
+let speaking = false;
+let projectP = Promise.resolve(null);
+const VOICE = {
+  Margaux: " DELIVERY: write for the ear, dripping with sarcasm. Theatrical, drawn-out, faux-sophisticated: dramatic pauses with '...', a weary 'Oh, darling.' or 'Mm.' now and then (spell every word normally, never stretch letters), rhetorical questions, then a withering short punchline. Vary rhythm: one long ornate clause, then a two-word kill.",
+  Theo: " DELIVERY: write for the ear, bone-dry deadpan. Short punchy sentences. Fake enthusiasm ('Wow. Great. Love that.'), a pause '...' before the punchline, an exasperated 'Okay, so,' or 'Right.' Mix one quick setup with a flat one-line kill. Never ramble.",
+};
+const TONE = " Keep it witty and PG-13: no crude or explicit language. No stage directions or sound effects in brackets; express everything through the words and punctuation.";
+const toneFor = (who) => (VOICE[who] || "") + TONE;
+let vapi = null, phase = "idle", turns = 0, quietTimer = null, stallTimer = null, toolPending = false, building = "";
+
+// ---------- Live transcript: one bubble per host turn, streamed word by word ----------
+let speaker = "Margaux", bubble = null, committed = "";
+const FIXES = [
+  [/\bPind ?[Uu]p\b/g, "Pinned Up"], [/\bPinned up\b/g, "Pinned Up"],
+  [/\b(Mardo|Marco|Margo|Margot)\b/g, "Margaux"], [/\bFio\b/g, "Theo"], [/\bFeels here\b/g, "Theo's here"],
+  [/\bFrank Gary\b/g, "Frank Gehry"], [/\bGary Partners\b/g, "Gehry Partners"],
+];
+const fix = (s) => FIXES.reduce((acc, [re, to]) => acc.replace(re, to), s);
+const escH = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Text = the host's real written words (correct spelling). Pace = how far the voice has actually got.
+let modelText = "", spokenCommitted = 0, spokenPartial = 0, speakStartAt = 0, lastTokenAt = 0, gotModelOutput = false;
+const WPS = { Margaux: 2.5, Theo: 3.1 };          // fallback pace (words/sec) if speech-to-text counts aren't arriving
+const wc = (s) => (String(s).trim().match(/\S+/g) || []).length;
+function ensureBubble() {
+  if (bubble) return;
+  bubble = document.createElement("div");
+  bubble.className = "line " + speaker;
+  $("transcript").appendChild(bubble);
+}
+function paint(full = false) {
+  if (!bubble) return;
+  let text;
+  if (gotModelOutput && modelText) {
+    const words = modelText.trim().split(/\s+/);
+    let n;
+    if (full) n = words.length;
+    else if (spokenCommitted + spokenPartial > 0) n = spokenCommitted + spokenPartial + 1;      // follow the voice
+    else n = speakStartAt ? Math.floor(((Date.now() - speakStartAt) / 1000) * (WPS[speaker] || 2.7)) : 0;
+    text = words.slice(0, Math.min(n, words.length)).join(" ");
+  } else {
+    text = (committed + (spokenPartialText ? " " + spokenPartialText : "")).trim();   // fallback: raw transcript
+  }
+  bubble.innerHTML = `<div class="who">${speaker}</div><span class="said">${escH(fix(text))}</span>${full ? "" : '<span class="caret">▍</span>'}`;
+  $("transcript").scrollTop = $("transcript").scrollHeight;
+}
+let spokenPartialText = "";
+setInterval(() => { if (bubble) paint(false); }, 120);
+function renderBubble() { ensureBubble(); paint(false); }
+function closeBubble() {
+  if (bubble) paint(true);
+  bubble = null; committed = ""; modelText = ""; spokenCommitted = 0; spokenPartial = 0; spokenPartialText = ""; speakStartAt = 0;
+}
+let showText = true;
+function onTranscript(m) {
+  if (m.role !== "assistant" || !showText) return;
+  ensureBubble();
+  if (!speakStartAt) speakStartAt = Date.now();
+  if (m.transcriptType === "final") {
+    spokenCommitted += wc(m.transcript); spokenPartial = 0;
+    committed = (committed + " " + m.transcript).trim(); spokenPartialText = "";
+  } else { spokenPartial = wc(m.transcript); spokenPartialText = m.transcript; }
+}
+function onModelOutput(m) {
+  const tok = typeof m.output === "string" ? m.output : (typeof m.output?.content === "string" ? m.output.content : "");
+  if (!tok || !showText) return;
+  const now = Date.now();
+  if (bubble && modelText && now - lastTokenAt > 2500 && !speaking) closeBubble();   // fresh reply from the same host
+  lastTokenAt = now;
+  ensureBubble();
+  modelText += tok;
+}
+function onSpeechStart() { if (bubble && !speakStartAt) speakStartAt = Date.now(); else if (!bubble) { ensureBubble(); speakStartAt = Date.now(); } }
+let lastHandoffAt = 0;
+function onHandoff(to) {
+  // a single handoff can be reported twice (tool-calls + assistant.started); ignore the echo
+  if (Date.now() - lastHandoffAt < 4000 && (!to || to === speaker)) return;
+  lastHandoffAt = Date.now();
+  closeBubble();
+  speaker = to || (speaker === "Margaux" ? "Theo" : "Margaux");
+  turns += 1; handoffHappened = true;
+  setStatus(`● LIVE · turn ${Math.min(turns, MAX_TURNS)}/${MAX_TURNS}`);
+  clearTimeout(quietTimer);
+  quietTimer = setTimeout(onQuiet, 250);   // mic just changed hands: cue the new host right away
+}
+
+function cue(content) {
+  if (!vapi) return;
+  vapi.send({ type: "add-message", message: { role: "system", content }, triggerResponseEnabled: true });
+}
+function armStall() { clearTimeout(stallTimer); stallTimer = setTimeout(onQuiet, STALL_MS); }
+function scheduleQuiet() { clearTimeout(quietTimer); quietTimer = setTimeout(onQuiet, QUIET_MS); }
+
+let awaiting = "speak", handoffHappened = false;   // what we expect next: a host to finish speaking, or a handoff to land
+const HANDOFF_CUE = "Silent producer cue (never read aloud): call handoff_to_assistant right now. Do not say anything at all.";
+const VERDICT_CUE = 'Silent producer cue (never read aloud): Margaux, deliver the jury verdict now: exactly one of "PASS", "Revise and resubmit", or "See me after studio", plus one closing line and a goodnight. Do not hand off.' + toneFor("Margaux");
+function speakCue() {
+  return speaker === "Theo"
+    ? "Silent producer cue (never read aloud): Theo, you have the mic. React to Margaux's last point with one sharp, specific jab about the building, 1-2 sentences, then stop. Do not hand off." + toneFor("Theo")
+    : "Silent producer cue (never read aloud): Margaux, you have the mic. Respond to Theo's last point, escalate or concede elegantly, 1-3 sentences, then stop. Never re-introduce the show. Do not hand off." + toneFor("Margaux");
+}
+function onQuiet() {
+  if (speaking) { armStall(); return; }           // never cue over a host who is mid-sentence
+  if (toolPending) { scheduleQuiet(); return; }
+  if (phase === "intro") {
+    phase = "crit"; awaiting = "speak";
+    setStatus("● LIVE · pinning up");
+    const timeout = new Promise((r) => setTimeout(() => r(null), 6000));
+    Promise.race([projectP, timeout]).then((p) => {
+      const title = (p && p.title) ? p.title : building;
+      const text = (p && p.realTextYouMayQuote) ? String(p.realTextYouMayQuote).slice(0, 900) : "";
+      cue(`Silent producer cue (never read this aloud, never mention cues or tools): the show starts now. ` +
+          `Tonight's building, typed by the audience: "${building}". The producer has ALREADY pinned it up as "${title}". Do NOT call any tools. ` +
+          (text ? `Real press text you may quote from: <<<${text}>>>. ` : "") +
+          `Margaux, in ONE continuous answer: one fresh improvised line of welcome (never a stock intro), ` +
+          (text ? `then read one short line from the real press text as "the press release says...", ` : "") +
+          `then ONE pretentious take in 1-3 sentences, then stop. Welcome the audience only once. Do not hand off.` + toneFor("Margaux"));
+      armStall();
+    });
+    return;
+  } else if (phase === "crit") {
+    const done = turns >= MAX_TURNS;
+    if (awaiting === "speak") {
+      // a host just finished a full turn
+      if (done && speaker === "Margaux") { phase = "wrap"; setStatus("● LIVE · verdict"); cue(VERDICT_CUE); }
+      else { awaiting = "handoff"; cue(HANDOFF_CUE); }
+    } else if (handoffHappened) {
+      // the mic has changed hands and the new host is quiet: give them their turn
+      handoffHappened = false; awaiting = "speak";
+      if (done && speaker === "Margaux") { phase = "wrap"; setStatus("● LIVE · verdict"); cue(VERDICT_CUE); }
+      else cue(speakCue());
+    } else {
+      cue(HANDOFF_CUE);                           // handoff cue didn't land yet: ask again
+    }
+  } else if (phase === "wrap") {
+    phase = "ending";
+    setTimeout(() => vapi && vapi.stop(), 4000);
+  }
+  armStall();
+}
+
+async function start(e) {
+  e.preventDefault();
+  building = $("building").value.trim() || "a famous new building of your choice";
+  $("go").disabled = true;
+  setStatus("● CONNECTING…");
+  try {
+    await fetch("/reset", { method: "POST" });
+    { const st = document.querySelector("main"); st.style.backgroundImage = ""; st.dataset.bg = ""; $("transcript").innerHTML = ""; }
+    // Pin the building to the wall right away, in parallel with connecting the call (also warms the server cache).
+    projectP = fetch("/test/project", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: building }) })
+      .then((r) => r.json()).catch(() => null);
+    const cfg = await (await fetch("/config")).json();
+    if (!cfg.publicKey) throw new Error("Missing VAPI_PUBLIC_KEY on the server");
+    if (!cfg.squadId) throw new Error("Missing VAPI_SQUAD_ID on the server");
+    vapi = new Vapi(cfg.publicKey);
+    phase = "intro"; turns = 0; toolPending = false; awaiting = "speak"; handoffHappened = false; speaking = false;
+
+    vapi.on("call-start", () => { vapi.setMuted(true); setStatus("● LIVE"); setTimeout(onQuiet, 700); armStall(); });
+    vapi.on("speech-start", () => { onSpeechStart(); speaking = true; toolPending = false; awaiting = "speak"; handoffHappened = false; clearTimeout(quietTimer); armStall(); });
+    vapi.on("speech-end", () => { speaking = false; scheduleQuiet(); });
+    $("transcript").innerHTML = ""; speaker = "Margaux"; bubble = null; committed = ""; showText = true; gotModelOutput = false; modelText = ""; spokenCommitted = 0; spokenPartial = 0; spokenPartialText = ""; speakStartAt = 0;
+    vapi.on("message", (m) => {
+      if (m?.type === "model-output") { gotModelOutput = true; onModelOutput(m); }
+      else if (m?.type === "transcript") onTranscript(m);
+      // Who has the mic: prefer an explicit assistant name from Vapi, else flip on each handoff tool call.
+      const named = m?.newAssistant?.name || (m?.type === "assistant.started" && m?.assistant?.name);
+      if (named && /theo|margaux/i.test(named)) {
+        const who = /theo/i.test(named) ? "Theo" : "Margaux";
+        if (who !== speaker) onHandoff(who);
+      } else if (m?.type === "tool-calls") {
+        const calls = m.toolCallList || m.toolCalls || [];
+        if (calls.some((c) => /handoff/i.test(c?.function?.name || c?.name || ""))) onHandoff();
+        if (calls.some((c) => /get_project/i.test(c?.function?.name || c?.name || ""))) { showText = true; }
+      }
+      if (m?.type === "tool-calls") { toolPending = true; setTimeout(() => { toolPending = false; }, 8000); }
+      if (m?.type === "tool-calls-result" || m?.type === "tool.completed") toolPending = false;
+    });
+    vapi.on("call-end", () => { speaking = false; closeBubble(); phase = "idle"; clearTimeout(quietTimer); clearTimeout(stallTimer); $("go").disabled = false; setStatus("● READY"); });
+    vapi.on("error", (err) => { console.error(err); setStatus("● ERROR — see console"); $("go").disabled = false; });
+
+    await vapi.start(undefined, undefined, cfg.squadId);
+  } catch (err) {
+    console.error(err); setStatus("● " + err.message); $("go").disabled = false;
+  }
+}
+
+$("pin").addEventListener("submit", start);
+$("stop").addEventListener("click", () => vapi && vapi.stop());
+$("reset").addEventListener("click", async () => {
+  try { if (vapi) { phase = "ending"; await vapi.stop(); } } catch {}
+  clearTimeout(quietTimer); clearTimeout(stallTimer);
+  phase = "idle"; turns = 0; speaking = false; toolPending = false; awaiting = "speak"; handoffHappened = false;
+  speaker = "Margaux"; bubble = null; committed = "";
+  await fetch("/reset", { method: "POST" }).catch(() => {});
+  $("transcript").innerHTML = "";
+  $("wall").innerHTML = "<h2>Waiting for a building…</h2><p>Type one above and pin it up.</p>";
+  { const st = document.querySelector("main"); st.style.backgroundImage = ""; st.dataset.bg = ""; }
+  $("building").value = ""; $("building").focus();
+  $("verdict").style.display = "none";
+  try { seenBingo = 0; shownVerdict = null; } catch {}
+  $("go").disabled = false; setStatus("● READY");
+});
+</script>
+</body>
+</html>
